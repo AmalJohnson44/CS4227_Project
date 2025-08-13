@@ -17,7 +17,7 @@ Microservices (Spring Boot + Gradle) and a role-based Next.js frontend, wired th
 - frontend (3000)
 
 ## Run (no Docker)
-Open terminals per service and run `gradle bootRun` in each backend folder, plus `npm run dev` in `frontend`.
+Open terminals per service and run `gradlew.bat` in each backend folder, plus `npm run dev` in `frontend`.
 
 ## Run (Docker)
 ```bash
