@@ -1,0 +1,6 @@
+
+CREATE TABLE IF NOT EXISTS medical_records (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  description TEXT
+);

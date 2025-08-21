@@ -1,0 +1,136 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sh-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bootstrap
+      MYSQL_USER: amal
+      MYSQL_PASSWORD: amal
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./infra/mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [amal-net]
+
+  discovery-server:
+    build: ./backend/discovery-server
+    ports: ["8761:8761"]
+    networks: [amal-net]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8761/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s 
+
+  api-gateway:
+    build: ./backend/api-gateway
+    ports: ["8080:8080"]
+    networks: [amal-net]
+    environment:
+      # 👇 set allowed frontend origins here (comma-separated if you like)
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  auth-service:
+    build: ./backend/auth-service
+    ports: ["8091:8091"]
+    networks: [amal-net]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+
+  user-service:
+    build: ./backend/user-service
+    ports: ["8092:8092"]
+    networks: [amal-net]
+    depends_on:
+      discovery-server:
+        condition: service_started
+
+  patient-service:
+    build: ./backend/patient-service
+    ports: ["8093:8093"]
+    networks: [amal-net]
+    depends_on:
+      discovery-server:
+        condition: service_started
+
+  doctor-service:
+    build: ./backend/doctor-service
+    ports: ["8094:8094"]
+    networks: [amal-net]
+    depends_on:
+      discovery-server:
+        condition: service_started
+
+  appointment-service:
+    build: ./backend/appointment-service
+    ports: ["8095:8095"]
+    networks: [amal-net]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+
+  medical-record-service:
+    build: ./backend/medical-record-service
+    ports: ["8096:8096"]
+    networks: [amal-net]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+
+  admin-service:
+    build: ./backend/admin-service
+    ports: ["8097:8097"]
+    networks: [amal-net]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      appointment-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+
+  notification-service:
+    build: ./backend/notification-service
+    ports: ["8098:8098"]
+    networks: [amal-net]
+    depends_on:
+      discovery-server:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:8080
+    networks: [amal-net]
+    depends_on:
+      api-gateway:
+        condition: service_started
+
+networks:
+  amal-net:
+    driver: bridge

@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS auth_db;
+CREATE DATABASE IF NOT EXISTS appointments_db;
+CREATE DATABASE IF NOT EXISTS records_db;
+CREATE DATABASE IF NOT EXISTS admin_db;
+
+GRANT ALL PRIVILEGES ON auth_db.* TO 'amal'@'%';
+GRANT ALL PRIVILEGES ON appointments_db.* TO 'amal'@'%';
+GRANT ALL PRIVILEGES ON records_db.* TO 'amal'@'%';
+GRANT ALL PRIVILEGES ON admin_db.* TO 'amal'@'%';
+FLUSH PRIVILEGES;

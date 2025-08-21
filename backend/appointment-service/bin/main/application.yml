@@ -1,0 +1,13 @@
+
+server: { port: 8095 }
+spring:
+  application: { name: appointment-service }
+  datasource:
+    url: jdbc:mysql://mysql:3306/appointments_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: amal
+    password: amal
+  jpa: { hibernate: { ddl-auto: validate }, properties: { hibernate: { format_sql: true } } }
+  flyway: { enabled: true, locations: classpath:db/migration }
+eureka:
+  client: { serviceUrl: { defaultZone: http://discovery-server:8761/eureka } }
+  instance: { prefer-ip-address: true }
